@@ -1,10 +1,17 @@
 /**
  * @file test.cpp
- * @brief Program untuk menggambar bentuk teardrop 3D menggunakan OpenGL
- * 
- * Program ini membuat bentuk teardrop dengan memodifikasi bola standar,
- * bagian atas dibuat lancip seperti tetesan air.
- * Kontrol: Arrow keys untuk rotasi objek.
+ * @brief 3D Teardrop Shape Renderer using OpenGL
+ * @author Group 4
+ * @version 1.0
+ *
+ * This program renders a 3D teardrop shape by modifying a standard sphere.
+ * The upper hemisphere is tapered to create a water droplet effect.
+ *
+ * @section controls Controls
+ * - Arrow Keys: Rotate the object (X and Y axis)
+ * - W/A/S/D: Translate the object
+ * - +/-: Scale the object (zoom in/out)
+ * - ESC: Exit the program
  */
 
 #include <GL/freeglut.h>
@@ -13,27 +20,47 @@
 #include <iostream>
 #include <vector>
 
+/** @brief Mathematical constant PI for trigonometric calculations */
 const float PI = 3.14159265f;
 
-float angleX = 15.0f;  /**< Sudut rotasi sumbu X */
-float angleY = 0.0f;   /**< Sudut rotasi sumbu Y */
+/** @brief Current rotation angle around the X-axis in degrees */
+float angleX = 15.0f;
+
+/** @brief Current rotation angle around the Y-axis in degrees */
+float angleY = 0.0f;
+
+/** @brief Current translation offset along the X-axis */
+float transX = 0.0f;
+
+/** @brief Current translation offset along the Y-axis */
+float transY = 0.0f;
+
+/** @brief Current translation offset along the Z-axis */
+float transZ = 0.0f;
+
+/** @brief Current uniform scale factor for the object */
+float scaleValue = 1.0f;
+
 
 /**
- * @brief Menggambar bentuk teardrop 3D
- * 
- * Fungsi ini membuat bentuk teardrop dengan memodifikasi bola standar.
- * Bagian atas (y > 0) diubah menjadi lancip dengan memperkecil radius
- * dan memanjangkan koordinat Y.
- * 
- * @param radius Radius dasar bentuk
- * @param slices Jumlah segmen horizontal (detail keliling)
- * @param stacks Jumlah segmen vertikal (detail tinggi)
+ * @brief Renders a 3D teardrop shape using triangle strips
+ *
+ * This function generates a teardrop by modifying a parametric sphere.
+ * For vertices in the upper hemisphere (y > 0), the radius is pinched
+ * inward while the y-coordinate is stretched upward, creating the
+ * characteristic pointed tip of a water droplet.
+ *
+ * The shape is constructed using horizontal triangle strips from top
+ * to bottom, with normals calculated for proper lighting.
+ *
+ * @param radius Base radius of the teardrop at its widest point
+ * @param slices Number of longitudinal divisions (horizontal detail)
+ * @param stacks Number of latitudinal divisions (vertical detail)
  */
 void drawTeardrop(float radius, int slices, int stacks)
 {
     for (int i = 0; i < stacks; ++i)
     {
-        /* phi: sudut dari atas (0) ke bawah (PI) */
         float phi1 = (float)i / stacks * PI;
         float phi2 = (float)(i + 1) / stacks * PI;
 
@@ -41,10 +68,8 @@ void drawTeardrop(float radius, int slices, int stacks)
 
         for (int j = 0; j <= slices; ++j)
         {
-            /* theta: sudut keliling (0 sampai 2*PI) */
             float theta = (float)j / slices * 2.0f * PI;
 
-            /* Vertex 1: tepi atas strip */
             float r1 = radius;
             float y1 = radius * cos(phi1);
 
@@ -58,7 +83,6 @@ void drawTeardrop(float radius, int slices, int stacks)
             float x1 = r1 * sin(phi1) * cos(theta);
             float z1 = r1 * sin(phi1) * sin(theta);
 
-            /* Vertex 2: tepi bawah strip */
             float r2 = radius;
             float y2 = radius * cos(phi2);
 
@@ -72,7 +96,6 @@ void drawTeardrop(float radius, int slices, int stacks)
             float x2 = r2 * sin(phi2) * cos(theta);
             float z2 = r2 * sin(phi2) * sin(theta);
 
-            /* Gambar vertex dengan normal untuk lighting */
             glNormal3f(x1, y1, z1);
             glVertex3f(x1, y1, z1);
 
@@ -84,26 +107,26 @@ void drawTeardrop(float radius, int slices, int stacks)
 }
 
 /**
- * @brief Fungsi callback untuk menggambar scene
- * 
- * Dipanggil setiap kali window perlu digambar ulang.
- * Mengatur kamera, rotasi, dan memanggil drawTeardrop.
+ * @brief Main rendering callback function
+ *
+ * This function is called by GLUT whenever the window needs to be redrawn.
+ * It clears the buffers, sets up the camera position, applies transformations
+ * (translation, rotation, scaling), and renders the teardrop shape.
  */
 void drawScene(void)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
-    /* Posisi kamera: di depan objek */
     gluLookAt(0.0, 0.0, 10.0,
               0.0, 0.0, 0.0,
               0.0, 1.0, 0.0);
 
-    /* Terapkan rotasi berdasarkan input user */
+    glTranslatef(transX, transY, transZ);
     glRotatef(angleX, 1.0f, 0.0f, 0.0f);
     glRotatef(angleY, 0.0f, 1.0f, 0.0f);
+    glScalef(scaleValue, scaleValue, scaleValue);
 
-    /* Gambar teardrop dengan warna cyan */
     glColor3f(0.0f, 0.8f, 1.0f);
     drawTeardrop(1.5f, 40, 40);
 
@@ -111,9 +134,13 @@ void drawScene(void)
 }
 
 /**
- * @brief Inisialisasi pengaturan OpenGL
- * 
- * Mengatur warna background, depth test, dan lighting.
+ * @brief Initializes OpenGL rendering settings
+ *
+ * Configures the following OpenGL states:
+ * - Background color (dark gray)
+ * - Depth testing for proper 3D rendering
+ * - Lighting system with a single directional light
+ * - Color material tracking for vertex colors
  */
 void setUp(void)
 {
@@ -128,12 +155,13 @@ void setUp(void)
 }
 
 /**
- * @brief Callback untuk resize window
- * 
- * Mengatur viewport dan projection matrix saat window di-resize.
- * 
- * @param w Lebar window baru
- * @param h Tinggi window baru
+ * @brief Window resize callback function
+ *
+ * Called by GLUT when the window is resized. Updates the viewport
+ * and recalculates the projection matrix to maintain proper aspect ratio.
+ *
+ * @param w New window width in pixels
+ * @param h New window height in pixels
  */
 void resize(int w, int h)
 {
@@ -148,15 +176,79 @@ void resize(int w, int h)
 }
 
 /**
- * @brief Callback untuk input keyboard khusus (arrow keys)
- * 
- * Mengontrol rotasi objek dengan arrow keys.
- * - UP/DOWN: rotasi sumbu X
- * - LEFT/RIGHT: rotasi sumbu Y
- * 
- * @param key Kode tombol yang ditekan
- * @param x Posisi x mouse (tidak digunakan)
- * @param y Posisi y mouse (tidak digunakan)
+ * @brief Keyboard input callback for standard keys
+ *
+ * Handles translation and scaling controls:
+ * - W: Move object upward
+ * - S: Move object downward
+ * - A: Move object left
+ * - D: Move object right
+ * - +: Increase scale (zoom in)
+ * - -: Decrease scale (zoom out, minimum 0.1)
+ * - ESC: Terminate the program
+ * - Q: Move object closer (along Z-axis)
+ * - E: Move object farther (along Z-axis)
+ *
+ * @param key ASCII code of the pressed key
+ * @param x Mouse X position (unused)
+ * @param y Mouse Y position (unused)
+ */
+void keyInput(unsigned char key, int x, int y)
+{
+    switch (key)
+    {
+    case 'q':
+        transZ -= 0.2f; 
+        glutPostRedisplay();
+        break;
+    case 'e':
+        transZ += 0.2f; 
+        glutPostRedisplay();
+        break;
+    case 'w':
+        transY += 0.2f;
+        glutPostRedisplay();
+        break;
+    case 's':
+        transY -= 0.2f;
+        glutPostRedisplay();
+        break;
+    case 'a':
+        transX -= 0.2f;
+        glutPostRedisplay();
+        break;
+    case 'd':
+        transX += 0.2f;
+        glutPostRedisplay();
+        break;
+    case '+':
+        scaleValue += 0.1f;
+        glutPostRedisplay();
+        break;
+    case '-':
+        scaleValue -= 0.1f;
+        if (scaleValue < 0.1f)
+            scaleValue = 0.1f;
+        glutPostRedisplay();
+        break;
+    case 27:
+        exit(0);
+        break;
+    }
+}
+
+/**
+ * @brief Keyboard input callback for special keys
+ *
+ * Handles rotation controls using arrow keys:
+ * - UP: Rotate around X-axis (tilt backward)
+ * - DOWN: Rotate around X-axis (tilt forward)
+ * - LEFT: Rotate around Y-axis (turn left)
+ * - RIGHT: Rotate around Y-axis (turn right)
+ *
+ * @param key GLUT special key code
+ * @param x Mouse X position (unused)
+ * @param y Mouse Y position (unused)
  */
 void specialInput(int key, int x, int y)
 {
@@ -175,14 +267,18 @@ void specialInput(int key, int x, int y)
         angleY += 5.0f;
         break;
     }
-
     glutPostRedisplay();
 }
 
 /**
- * @brief Fungsi utama program
- * 
- * Inisialisasi GLUT, membuat window, dan memulai main loop.
+ * @brief Program entry point
+ *
+ * Initializes the GLUT library, creates the application window,
+ * registers callback functions, and starts the main event loop.
+ *
+ * @param argc Command line argument count
+ * @param argv Command line argument values
+ * @return Exit status code (0 for success)
  */
 int main(int argc, char **argv)
 {
@@ -193,6 +289,7 @@ int main(int argc, char **argv)
 
     glutDisplayFunc(drawScene);
     glutReshapeFunc(resize);
+    glutKeyboardFunc(keyInput);
     glutSpecialFunc(specialInput);
 
     setUp();
