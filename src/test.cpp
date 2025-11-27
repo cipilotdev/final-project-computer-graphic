@@ -20,12 +20,8 @@
 #include <iostream>
 #include <vector>
 
-// ===================== Constants =====================
-
 /** @brief Mathematical constant PI for trigonometric calculations */
 const float PI = 3.14159265f;
-
-// ===================== Data Structures =====================
 
 /**
  * @struct Transform
@@ -42,8 +38,6 @@ struct Transform {
     float rotateY = 0.0f;      /**< Rotation angle around Y-axis (degrees) */
     float scale = 1.0f;        /**< Uniform scale factor */
 };
-
-// ===================== Global State =====================
 
 /** @brief Transform state for the main teardrop object */
 Transform objectTransform;
