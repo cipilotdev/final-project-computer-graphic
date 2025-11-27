@@ -20,27 +20,33 @@
 #include <iostream>
 #include <vector>
 
+// ===================== Constants =====================
+
 /** @brief Mathematical constant PI for trigonometric calculations */
 const float PI = 3.14159265f;
 
-/** @brief Current rotation angle around the X-axis in degrees */
-float angleX = 15.0f;
+// ===================== Data Structures =====================
 
-/** @brief Current rotation angle around the Y-axis in degrees */
-float angleY = 0.0f;
+/**
+ * @struct Transform
+ * @brief Encapsulates all transformation properties for a 3D object
+ *
+ * This structure groups translation, rotation, and scale parameters
+ * to provide a clean interface for object transformations.
+ */
+struct Transform {
+    float translateX = 0.0f;   /**< Translation offset along X-axis */
+    float translateY = 0.0f;   /**< Translation offset along Y-axis */
+    float translateZ = 0.0f;   /**< Translation offset along Z-axis */
+    float rotateX = 15.0f;     /**< Rotation angle around X-axis (degrees) */
+    float rotateY = 0.0f;      /**< Rotation angle around Y-axis (degrees) */
+    float scale = 1.0f;        /**< Uniform scale factor */
+};
 
-/** @brief Current translation offset along the X-axis */
-float transX = 0.0f;
+// ===================== Global State =====================
 
-/** @brief Current translation offset along the Y-axis */
-float transY = 0.0f;
-
-/** @brief Current translation offset along the Z-axis */
-float transZ = 0.0f;
-
-/** @brief Current uniform scale factor for the object */
-float scaleValue = 1.0f;
-
+/** @brief Transform state for the main teardrop object */
+Transform objectTransform;
 
 /**
  * @brief Renders a 3D teardrop shape using triangle strips
@@ -126,10 +132,15 @@ void drawScene(void)
               0.0, 1.0, 0.0);
 
     glPushMatrix();
-        glTranslatef(transX, transY, transZ);
-        glRotatef(angleX, 1.0f, 0.0f, 0.0f);
-        glRotatef(angleY, 0.0f, 1.0f, 0.0f);
-        glScalef(scaleValue, scaleValue, scaleValue);
+        // Apply object transformations from Transform struct
+        glTranslatef(objectTransform.translateX, 
+                     objectTransform.translateY, 
+                     objectTransform.translateZ);
+        glRotatef(objectTransform.rotateX, 1.0f, 0.0f, 0.0f);
+        glRotatef(objectTransform.rotateY, 0.0f, 1.0f, 0.0f);
+        glScalef(objectTransform.scale, 
+                 objectTransform.scale, 
+                 objectTransform.scale);
 
         // Draw parent object
         glColor3f(0.0f, 0.8f, 1.0f);
@@ -236,40 +247,45 @@ void resize(int w, int h)
  */
 void keyInput(unsigned char key, int x, int y)
 {
+    // Movement speed constants
+    const float TRANSLATION_SPEED = 0.2f;
+    const float SCALE_STEP = 0.1f;
+    const float MIN_SCALE = 0.1f;
+
     switch (key)
     {
     case 'q':
-        transZ -= 0.2f; 
+        objectTransform.translateZ -= TRANSLATION_SPEED; 
         glutPostRedisplay();
         break;
     case 'e':
-        transZ += 0.2f; 
+        objectTransform.translateZ += TRANSLATION_SPEED; 
         glutPostRedisplay();
         break;
     case 'w':
-        transY += 0.2f;
+        objectTransform.translateY += TRANSLATION_SPEED;
         glutPostRedisplay();
         break;
     case 's':
-        transY -= 0.2f;
+        objectTransform.translateY -= TRANSLATION_SPEED;
         glutPostRedisplay();
         break;
     case 'a':
-        transX -= 0.2f;
+        objectTransform.translateX -= TRANSLATION_SPEED;
         glutPostRedisplay();
         break;
     case 'd':
-        transX += 0.2f;
+        objectTransform.translateX += TRANSLATION_SPEED;
         glutPostRedisplay();
         break;
     case '+':
-        scaleValue += 0.1f;
+        objectTransform.scale += SCALE_STEP;
         glutPostRedisplay();
         break;
     case '-':
-        scaleValue -= 0.1f;
-        if (scaleValue < 0.1f)
-            scaleValue = 0.1f;
+        objectTransform.scale -= SCALE_STEP;
+        if (objectTransform.scale < MIN_SCALE)
+            objectTransform.scale = MIN_SCALE;
         glutPostRedisplay();
         break;
     case '1':
@@ -307,19 +323,21 @@ void keyInput(unsigned char key, int x, int y)
  */
 void specialInput(int key, int x, int y)
 {
+    const float ROTATION_SPEED = 5.0f;
+
     switch (key)
     {
     case GLUT_KEY_UP:
-        angleX -= 5.0f;
+        objectTransform.rotateX -= ROTATION_SPEED;
         break;
     case GLUT_KEY_DOWN:
-        angleX += 5.0f;
+        objectTransform.rotateX += ROTATION_SPEED;
         break;
     case GLUT_KEY_LEFT:
-        angleY -= 5.0f;
+        objectTransform.rotateY -= ROTATION_SPEED;
         break;
     case GLUT_KEY_RIGHT:
-        angleY += 5.0f;
+        objectTransform.rotateY += ROTATION_SPEED;
         break;
     }
     glutPostRedisplay();
