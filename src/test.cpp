@@ -57,6 +57,7 @@ float scaleValue = 1.0f;
  * @param slices Number of longitudinal divisions (horizontal detail)
  * @param stacks Number of latitudinal divisions (vertical detail)
  */
+
 void drawTeardrop(float radius, int slices, int stacks)
 {
     for (int i = 0; i < stacks; ++i)
@@ -112,6 +113,8 @@ void drawTeardrop(float radius, int slices, int stacks)
  * This function is called by GLUT whenever the window needs to be redrawn.
  * It clears the buffers, sets up the camera position, applies transformations
  * (translation, rotation, scaling), and renders the teardrop shape.
+ * It also draws a smaller cube as a child object to demonstrate hierarchical modeling.
+ * Finally, it swaps the buffers to display the rendered frame.
  */
 void drawScene(void)
 {
@@ -122,13 +125,25 @@ void drawScene(void)
               0.0, 0.0, 0.0,
               0.0, 1.0, 0.0);
 
-    glTranslatef(transX, transY, transZ);
-    glRotatef(angleX, 1.0f, 0.0f, 0.0f);
-    glRotatef(angleY, 0.0f, 1.0f, 0.0f);
-    glScalef(scaleValue, scaleValue, scaleValue);
+    glPushMatrix();
+        glTranslatef(transX, transY, transZ);
+        glRotatef(angleX, 1.0f, 0.0f, 0.0f);
+        glRotatef(angleY, 0.0f, 1.0f, 0.0f);
+        glScalef(scaleValue, scaleValue, scaleValue);
 
-    glColor3f(0.0f, 0.8f, 1.0f);
-    drawTeardrop(1.5f, 40, 40);
+        // Draw parent object
+        glColor3f(0.0f, 0.8f, 1.0f);
+        drawTeardrop(1.5f, 40, 40);
+
+        // Draw child object (smaller cube)
+        glPushMatrix();
+            glTranslatef(3.0f, 0.0f, 0.0f); 
+            glScalef(0.5f, 0.5f, 0.5f);
+            glColor3f(1.0f, 0.2f, 0.2f);
+            glutSolidCube(1.5f);
+        glPopMatrix();
+
+    glPopMatrix();
 
     glutSwapBuffers();
 }
