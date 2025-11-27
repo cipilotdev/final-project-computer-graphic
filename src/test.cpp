@@ -140,7 +140,7 @@ void drawScene(void)
             glTranslatef(3.0f, 0.0f, 0.0f); 
             glScalef(0.5f, 0.5f, 0.5f);
             glColor3f(1.0f, 0.2f, 0.2f);
-            glutSolidCube(1.5f);
+            glutSolidTeapot(1.5);
         glPopMatrix();
 
     glPopMatrix();
@@ -154,19 +154,43 @@ void drawScene(void)
  * Configures the following OpenGL states:
  * - Background color (dark gray)
  * - Depth testing for proper 3D rendering
- * - Lighting system with a single directional light
+ * - Lighting system with two directional lights
  * - Color material tracking for vertex colors
+ * - Light 0 positioned to the right with ambient, diffuse, and specular components
+ * - Light 1 positioned to the left with ambient, diffuse, and specular components
  */
 void setUp(void)
 {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING);
+
     glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHT1);
+
     glEnable(GL_COLOR_MATERIAL);
 
-    GLfloat light_pos[] = {1.0f, 1.0f, 1.0f, 0.0f};
-    glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
+    // Light 0 configuration
+    GLfloat light0_pos[]     = { 3.0f, 2.0f, 2.0f, 1.0f };      // Right
+    GLfloat light0_ambient[]  = { 0.20f, 0.20f, 0.20f, 1.0f };  // ambient
+    GLfloat light0_diffuse[]  = { 0.55f, 0.55f, 0.55f, 1.0f };  // diffuse
+    GLfloat light0_specular[] = { 0.45f, 0.45f, 0.45f, 1.0f };  // specular
+
+    glLightfv(GL_LIGHT0, GL_POSITION, light0_pos);
+    glLightfv(GL_LIGHT0, GL_AMBIENT,  light0_ambient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE,  light0_diffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, light0_specular);
+
+    // Light 1 configuration
+    GLfloat light1_pos[]      = { -3.0f, 1.0f, 2.0f, 1.0f };    // Left
+    GLfloat light1_ambient[]  = { 0.15f, 0.15f, 0.15f, 1.0f };  // ambient
+    GLfloat light1_diffuse[]  = { 0.40f, 0.40f, 0.40f, 1.0f };  // diffuse
+    GLfloat light1_specular[] = { 0.35f, 0.35f, 0.35f, 1.0f };  // specular
+
+    glLightfv(GL_LIGHT1, GL_POSITION, light1_pos);
+    glLightfv(GL_LIGHT1, GL_AMBIENT,  light1_ambient);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE,  light1_diffuse);
+    glLightfv(GL_LIGHT1, GL_SPECULAR, light1_specular);
 }
 
 /**
@@ -203,6 +227,8 @@ void resize(int w, int h)
  * - ESC: Terminate the program
  * - Q: Move object closer (along Z-axis)
  * - E: Move object farther (along Z-axis)
+ * - 1: Toggle Light 0
+ * - 2: Toggle Light 1
  *
  * @param key ASCII code of the pressed key
  * @param x Mouse X position (unused)
@@ -244,6 +270,20 @@ void keyInput(unsigned char key, int x, int y)
         scaleValue -= 0.1f;
         if (scaleValue < 0.1f)
             scaleValue = 0.1f;
+        glutPostRedisplay();
+        break;
+    case '1':
+        if (glIsEnabled(GL_LIGHT0))
+            glDisable(GL_LIGHT0);
+        else
+            glEnable(GL_LIGHT0);
+        glutPostRedisplay();
+        break;
+    case '2':
+        if (glIsEnabled(GL_LIGHT1))
+            glDisable(GL_LIGHT1);
+        else
+            glEnable(GL_LIGHT1);
         glutPostRedisplay();
         break;
     case 27:
