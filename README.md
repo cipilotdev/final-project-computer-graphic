@@ -38,14 +38,14 @@
 
 #### Texture Mapping (8 pts)
 
-- [ ] Texture mapping pada minimal 1 objek
-- [ ] Proper UV coordinates
+- [x] Texture mapping pada minimal 1 objek
+- [x] Proper UV coordinates
 
 #### Camera & User Controls (4 pts)
 
 - [x] **Camera** - Menggunakan `gluLookAt()` dengan posisi tetap
 - [x] **Toggle Lights** - Tombol 1 dan 2
-- [ ] Toggle Texture
+- [x] Toggle Texture
 - [ ] Toggle Animation
 
 ---

@@ -124,6 +124,9 @@ void drawTeardrop(float radius, int slices, int stacks)
 /** @brief OpenGL texture ID for the teardrop surface texture */
 GLuint teardropTexture;
 
+/** @brief Flag to toggle texture on/off */
+bool textureEnabled = true;
+
 /**
  * @brief Loads a texture from an image file and configures OpenGL texture parameters
  *
@@ -191,10 +194,18 @@ void drawScene(void)
              objectTransform.scale);
 
     // Draw parent object
-    glBindTexture(GL_TEXTURE_2D, teardropTexture);
+    if (textureEnabled)
+    {
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, teardropTexture);
+    }
+    else
+    {
+        glDisable(GL_TEXTURE_2D);
+    }
 
     // optional: tint
-    glColor3f(1.0f, 1.0f, 1.0f);
+    glColor3f(0.0f, 0.8f, 1.0f);
 
     drawTeardrop(1.5f, 40, 40);
 
@@ -202,7 +213,7 @@ void drawScene(void)
     glPushMatrix();
     glTranslatef(3.0f, 0.0f, 0.0f);
     glScalef(0.5f, 0.5f, 0.5f);
-    glColor3f(1.0f, 0.2f, 0.2f);
+    glColor3f(0.5f, 0.35f, 0.05f);
     glutSolidTeapot(1.5);
     glPopMatrix();
 
@@ -295,6 +306,7 @@ void resize(int w, int h)
  * - E: Move object farther (along Z-axis)
  * - 1: Toggle Light 0
  * - 2: Toggle Light 1
+ * - T: Toggle texture on/off
  *
  * @param key ASCII code of the pressed key
  * @param x Mouse X position (unused)
@@ -355,6 +367,11 @@ void keyInput(unsigned char key, int x, int y)
             glDisable(GL_LIGHT1);
         else
             glEnable(GL_LIGHT1);
+        glutPostRedisplay();
+        break;
+    case 't':
+    case 'T':
+        textureEnabled = !textureEnabled;
         glutPostRedisplay();
         break;
     case 27:
