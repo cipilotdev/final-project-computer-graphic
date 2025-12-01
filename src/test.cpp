@@ -14,10 +14,13 @@
  * - ESC: Exit the program
  */
 
+#include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <cstdlib>
 #include <cmath>
 #include <iostream>
+#define STB_IMAGE_IMPLEMENTATION
+#include "include/stb_image.h"
 #include <vector>
 
 /** @brief Mathematical constant PI for trigonometric calculations */
@@ -30,13 +33,14 @@ const float PI = 3.14159265f;
  * This structure groups translation, rotation, and scale parameters
  * to provide a clean interface for object transformations.
  */
-struct Transform {
-    float translateX = 0.0f;   /**< Translation offset along X-axis */
-    float translateY = 0.0f;   /**< Translation offset along Y-axis */
-    float translateZ = 0.0f;   /**< Translation offset along Z-axis */
-    float rotateX = 15.0f;     /**< Rotation angle around X-axis (degrees) */
-    float rotateY = 0.0f;      /**< Rotation angle around Y-axis (degrees) */
-    float scale = 1.0f;        /**< Uniform scale factor */
+struct Transform
+{
+    float translateX = 0.0f; /**< Translation offset along X-axis */
+    float translateY = 0.0f; /**< Translation offset along Y-axis */
+    float translateZ = 0.0f; /**< Translation offset along Z-axis */
+    float rotateX = 15.0f;   /**< Rotation angle around X-axis (degrees) */
+    float rotateY = 0.0f;    /**< Rotation angle around Y-axis (degrees) */
+    float scale = 1.0f;      /**< Uniform scale factor */
 };
 
 /** @brief Transform state for the main teardrop object */
@@ -71,6 +75,13 @@ void drawTeardrop(float radius, int slices, int stacks)
         {
             float theta = (float)j / slices * 2.0f * PI;
 
+            /** @brief Horizontal texture coordinate (0.0 to 1.0) based on slice position */
+            float u = (float)j / slices;
+            /** @brief Vertical texture coordinate for first vertex based on stack position */
+            float v1 = (float)i / stacks;
+            /** @brief Vertical texture coordinate for second vertex based on next stack position */
+            float v2 = (float)(i + 1) / stacks;
+
             float r1 = radius;
             float y1 = radius * cos(phi1);
 
@@ -83,6 +94,10 @@ void drawTeardrop(float radius, int slices, int stacks)
 
             float x1 = r1 * sin(phi1) * cos(theta);
             float z1 = r1 * sin(phi1) * sin(theta);
+
+            glNormal3f(x1, y1, z1);
+            glTexCoord2f(u, v1); // Set texture coordinate for vertex 1
+            glVertex3f(x1, y1, z1);
 
             float r2 = radius;
             float y2 = radius * cos(phi2);
@@ -97,14 +112,53 @@ void drawTeardrop(float radius, int slices, int stacks)
             float x2 = r2 * sin(phi2) * cos(theta);
             float z2 = r2 * sin(phi2) * sin(theta);
 
-            glNormal3f(x1, y1, z1);
-            glVertex3f(x1, y1, z1);
-
             glNormal3f(x2, y2, z2);
+            glTexCoord2f(u, v2); // Set texture coordinate for vertex 2
             glVertex3f(x2, y2, z2);
         }
+
         glEnd();
     }
+}
+
+/** @brief OpenGL texture ID for the teardrop surface texture */
+GLuint teardropTexture;
+
+/**
+ * @brief Loads a texture from an image file and configures OpenGL texture parameters
+ *
+ * This function uses stb_image library to load an image file, then creates
+ * an OpenGL texture with linear filtering and mipmapping for smooth rendering.
+ * The texture is set to repeat in both S and T directions.
+ *
+ * @param filename Path to the image file to load (supports JPG, PNG, etc.)
+ * @note Program will exit with code 1 if texture loading fails
+ */
+void loadTexture(const char *filename)
+{
+    int width, height, channels;
+    unsigned char *data = stbi_load(filename, &width, &height, &channels, 0);
+
+    if (!data)
+    {
+        std::cout << "Failed to load texture: " << filename << std::endl;
+        exit(1);
+    }
+
+    glGenTextures(1, &teardropTexture);
+    glBindTexture(GL_TEXTURE_2D, teardropTexture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height,
+                 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    stbi_image_free(data);
 }
 
 /**
@@ -126,27 +180,31 @@ void drawScene(void)
               0.0, 1.0, 0.0);
 
     glPushMatrix();
-        // Apply object transformations from Transform struct
-        glTranslatef(objectTransform.translateX, 
-                     objectTransform.translateY, 
-                     objectTransform.translateZ);
-        glRotatef(objectTransform.rotateX, 1.0f, 0.0f, 0.0f);
-        glRotatef(objectTransform.rotateY, 0.0f, 1.0f, 0.0f);
-        glScalef(objectTransform.scale, 
-                 objectTransform.scale, 
-                 objectTransform.scale);
+    // Apply object transformations from Transform struct
+    glTranslatef(objectTransform.translateX,
+                 objectTransform.translateY,
+                 objectTransform.translateZ);
+    glRotatef(objectTransform.rotateX, 1.0f, 0.0f, 0.0f);
+    glRotatef(objectTransform.rotateY, 0.0f, 1.0f, 0.0f);
+    glScalef(objectTransform.scale,
+             objectTransform.scale,
+             objectTransform.scale);
 
-        // Draw parent object
-        glColor3f(0.0f, 0.8f, 1.0f);
-        drawTeardrop(1.5f, 40, 40);
+    // Draw parent object
+    glBindTexture(GL_TEXTURE_2D, teardropTexture);
 
-        // Draw child object (smaller cube)
-        glPushMatrix();
-            glTranslatef(3.0f, 0.0f, 0.0f); 
-            glScalef(0.5f, 0.5f, 0.5f);
-            glColor3f(1.0f, 0.2f, 0.2f);
-            glutSolidTeapot(1.5);
-        glPopMatrix();
+    // optional: tint
+    glColor3f(1.0f, 1.0f, 1.0f);
+
+    drawTeardrop(1.5f, 40, 40);
+
+    // Draw child object (smaller cube)
+    glPushMatrix();
+    glTranslatef(3.0f, 0.0f, 0.0f);
+    glScalef(0.5f, 0.5f, 0.5f);
+    glColor3f(1.0f, 0.2f, 0.2f);
+    glutSolidTeapot(1.5);
+    glPopMatrix();
 
     glPopMatrix();
 
@@ -176,26 +234,29 @@ void setUp(void)
     glEnable(GL_COLOR_MATERIAL);
 
     // Light 0 configuration
-    GLfloat light0_pos[]     = { 3.0f, 2.0f, 2.0f, 1.0f };      // Right
-    GLfloat light0_ambient[]  = { 0.20f, 0.20f, 0.20f, 1.0f };  // ambient
-    GLfloat light0_diffuse[]  = { 0.55f, 0.55f, 0.55f, 1.0f };  // diffuse
-    GLfloat light0_specular[] = { 0.45f, 0.45f, 0.45f, 1.0f };  // specular
+    GLfloat light0_pos[] = {3.0f, 2.0f, 2.0f, 1.0f};         // Right
+    GLfloat light0_ambient[] = {0.20f, 0.20f, 0.20f, 1.0f};  // ambient
+    GLfloat light0_diffuse[] = {0.55f, 0.55f, 0.55f, 1.0f};  // diffuse
+    GLfloat light0_specular[] = {0.45f, 0.45f, 0.45f, 1.0f}; // specular
 
     glLightfv(GL_LIGHT0, GL_POSITION, light0_pos);
-    glLightfv(GL_LIGHT0, GL_AMBIENT,  light0_ambient);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE,  light0_diffuse);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, light0_ambient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_diffuse);
     glLightfv(GL_LIGHT0, GL_SPECULAR, light0_specular);
 
     // Light 1 configuration
-    GLfloat light1_pos[]      = { -3.0f, 1.0f, 2.0f, 1.0f };    // Left
-    GLfloat light1_ambient[]  = { 0.15f, 0.15f, 0.15f, 1.0f };  // ambient
-    GLfloat light1_diffuse[]  = { 0.40f, 0.40f, 0.40f, 1.0f };  // diffuse
-    GLfloat light1_specular[] = { 0.35f, 0.35f, 0.35f, 1.0f };  // specular
+    GLfloat light1_pos[] = {-3.0f, 1.0f, 2.0f, 1.0f};        // Left
+    GLfloat light1_ambient[] = {0.15f, 0.15f, 0.15f, 1.0f};  // ambient
+    GLfloat light1_diffuse[] = {0.40f, 0.40f, 0.40f, 1.0f};  // diffuse
+    GLfloat light1_specular[] = {0.35f, 0.35f, 0.35f, 1.0f}; // specular
 
     glLightfv(GL_LIGHT1, GL_POSITION, light1_pos);
-    glLightfv(GL_LIGHT1, GL_AMBIENT,  light1_ambient);
-    glLightfv(GL_LIGHT1, GL_DIFFUSE,  light1_diffuse);
+    glLightfv(GL_LIGHT1, GL_AMBIENT, light1_ambient);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, light1_diffuse);
     glLightfv(GL_LIGHT1, GL_SPECULAR, light1_specular);
+
+    glEnable(GL_TEXTURE_2D);
+    loadTexture("../src/resources/dirt.jpg");
 }
 
 /**
@@ -249,11 +310,11 @@ void keyInput(unsigned char key, int x, int y)
     switch (key)
     {
     case 'q':
-        objectTransform.translateZ -= TRANSLATION_SPEED; 
+        objectTransform.translateZ -= TRANSLATION_SPEED;
         glutPostRedisplay();
         break;
     case 'e':
-        objectTransform.translateZ += TRANSLATION_SPEED; 
+        objectTransform.translateZ += TRANSLATION_SPEED;
         glutPostRedisplay();
         break;
     case 'w':
@@ -353,6 +414,15 @@ int main(int argc, char **argv)
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(800, 600);
     glutCreateWindow("Project UAS Komgraf (Kelompok 4)");
+
+    glewExperimental = GL_TRUE; // Needed for some drivers
+    GLenum err = glewInit();
+    if (GLEW_OK != err)
+    {
+        std::cerr << "Error: " << glewGetErrorString(err) << std::endl;
+        return 1;
+    }
+    std::cout << "GLEW Initialized successfully." << std::endl;
 
     glutDisplayFunc(drawScene);
     glutReshapeFunc(resize);

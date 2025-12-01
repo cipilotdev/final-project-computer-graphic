@@ -11,6 +11,7 @@
         "src/${fileBasenameNoExtension}.cpp",
         "-o",
         "build/${fileBasenameNoExtension}.exe",
+        "-lglew32",
         "-lfreeglut",
         "-lopengl32",
         "-lglu32"
