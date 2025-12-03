@@ -31,22 +31,26 @@
 
 #### Lighting with at least 2 Lights and Toggles (10 pts)
 
-- [x] **Light 0 (Right)** - Posisi (3, 2, 2) dengan ambient, diffuse, specular
-- [x] **Light 1 (Left)** - Posisi (-3, 1, 2) dengan ambient, diffuse, specular
+- [x] **Light 0 (Key Light)** - Directional light (1, 1, 1) dengan ambient, diffuse, specular
+- [x] **Light 1 (Fill Light)** - Positional light (-5, -2, 8) dengan ambient, diffuse, specular
 - [x] **Toggle Light 0** - Tekan tombol `1` untuk on/off
 - [x] **Toggle Light 1** - Tekan tombol `2` untuk on/off
+- [x] **Real-time Lighting Adjustment** - Kontrol intensity (ambient, diffuse, specular) dan shininess
 
 #### Texture Mapping (8 pts)
 
-- [x] Texture mapping pada minimal 1 objek
-- [x] Proper UV coordinates
+- [x] **Texture mapping** pada teardrop object dengan dirt.jpg
+- [x] **Proper UV coordinates** menggunakan spherical mapping
+- [x] **Toggle texture** dengan tombol T
+- [x] **Mipmapping** untuk smooth rendering
 
 #### Camera & User Controls (4 pts)
 
 - [x] **Camera** - Menggunakan `gluLookAt()` dengan posisi tetap
 - [x] **Toggle Lights** - Tombol 1 dan 2
-- [x] Toggle Texture
-- [ ] Toggle Animation
+- [x] **Toggle Texture** - Tombol T
+- [x] **Toggle Animation** - Tombol K (X-axis) dan L (Y-axis)
+- [x] **Alternate Camera View** - Tombol Y
 
 ---
 
@@ -90,23 +94,66 @@
 
 ## 🎮 Kontrol
 
-| Key   | Action                        |
-| ----- | ----------------------------- |
-| `W`   | Gerak ke atas (translate Y+)  |
-| `S`   | Gerak ke bawah (translate Y-) |
-| `A`   | Gerak ke kiri (translate X-)  |
-| `D`   | Gerak ke kanan (translate X+) |
-| `Q`   | Gerak mendekat (translate Z-) |
-| `E`   | Gerak menjauh (translate Z+)  |
-| `↑`   | Rotasi ke atas (rotate X-)    |
-| `↓`   | Rotasi ke bawah (rotate X+)   |
-| `←`   | Rotasi ke kiri (rotate Y-)    |
-| `→`   | Rotasi ke kanan (rotate Y+)   |
-| `+`   | Zoom in (scale+)              |
-| `-`   | Zoom out (scale-)             |
-| `1`   | Toggle Light 0                |
-| `2`   | Toggle Light 1                |
-| `ESC` | Keluar program                |
+### Movement Controls
+
+| Key | Action                        |
+| --- | ----------------------------- |
+| `W` | Gerak ke atas (translate Y+)  |
+| `S` | Gerak ke bawah (translate Y-) |
+| `A` | Gerak ke kiri (translate X-)  |
+| `D` | Gerak ke kanan (translate X+) |
+| `Q` | Gerak mendekat (translate Z-) |
+| `E` | Gerak menjauh (translate Z+)  |
+| `↑` | Rotasi ke atas (rotate X-)    |
+| `↓` | Rotasi ke bawah (rotate X+)   |
+| `←` | Rotasi ke kiri (rotate Y-)    |
+| `→` | Rotasi ke kanan (rotate Y+)   |
+| `+` | Zoom in (scale+)              |
+| `-` | Zoom out (scale-)             |
+
+### Camera Controls
+
+| Key | Action                       |
+| --- | ---------------------------- |
+| `Y` | Toggle alternate camera view |
+
+### Animation Controls
+
+| Key | Action                           |
+| --- | -------------------------------- |
+| `K` | Toggle X-axis rotation animation |
+| `L` | Toggle Y-axis rotation animation |
+| `O` | Decrease X-axis rotation speed   |
+| `P` | Increase X-axis rotation speed   |
+| `U` | Decrease Y-axis rotation speed   |
+| `I` | Increase Y-axis rotation speed   |
+
+### Lighting Controls
+
+| Key | Action                              |
+| --- | ----------------------------------- |
+| `1` | Toggle Light 0                      |
+| `2` | Toggle Light 1                      |
+| `Z` | Decrease ambient intensity          |
+| `X` | Increase ambient intensity          |
+| `C` | Decrease diffuse intensity          |
+| `V` | Increase diffuse intensity          |
+| `B` | Decrease specular intensity         |
+| `N` | Increase specular intensity         |
+| `M` | Decrease shininess (specular power) |
+| `,` | Increase shininess (specular power) |
+
+### Texture Controls
+
+| Key | Action                |
+| --- | --------------------- |
+| `T` | Toggle texture on/off |
+
+### Other
+
+| Key   | Action         |
+| ----- | -------------- |
+| `ESC` | Keluar program |
 
 ---
 
@@ -121,14 +168,16 @@
 ### Compile
 
 ```bash
-g++ -IC:/MinGW/include -LC:/MinGW/lib src/test.cpp -o build/test.exe -lfreeglut -lopengl32 -lglu32
+g++ -IC:/MinGW/include -LC:/MinGW/lib src/hehehe.cpp -o build/hehehe.exe -lglew32 -lfreeglut -lopengl32 -lglu32
 ```
 
 ### Run
 
 ```bash
-./build/test.exe
+./build/hehehe.exe
 ```
+
+Atau gunakan VS Code task (Ctrl+Shift+B)
 
 ---
 
@@ -138,10 +187,15 @@ g++ -IC:/MinGW/include -LC:/MinGW/lib src/test.cpp -o build/test.exe -lfreeglut 
 project_uas_komgraf/
 ├── README.md
 ├── src/
-│   ├── test.cpp          # Main application
-│   ├── main.cpp          # Alternative main
-│   └── controls/
-│       └── controls.cpp  # Control utilities
+│   ├── hehehe.cpp        # Main application (v1.1)
+│   ├── lol.cpp           # Development version
+│   ├── main.cpp          # Legacy version
+│   ├── minecraft.cpp     # Test version
+│   ├── test.cpp          # Test version
+│   ├── include/
+│   │   └── stb_image.h   # Image loading library
+│   └── resources/
+│       └── dirt.jpg      # Texture file
 └── build/
     └── *.exe             # Compiled executables
 ```
@@ -181,8 +235,21 @@ glPopMatrix();
 
 ## 🔧 TODO
 
-- [ ] Implementasi texture mapping
-- [ ] Tambah animasi otomatis
-- [ ] Error checking untuk shader
+- [x] Implementasi texture mapping
+- [x] Tambah animasi otomatis (K/L keys)
+- [x] Real-time lighting adjustment
+- [x] Multiple camera views
+- [ ] Error checking untuk file loading
 - [ ] Buat laporan (max 2 halaman)
 - [ ] Rekam video demo (1-2 menit)
+
+---
+
+## 🎨 Fitur Tambahan
+
+- ✅ **Advanced Lighting System** - 2 lights dengan realistic key + fill light setup
+- ✅ **Real-time Lighting Control** - Adjust ambient, diffuse, specular intensity dan shininess
+- ✅ **Animation System** - Independent X/Y axis rotation dengan adjustable speed
+- ✅ **Multiple Camera Views** - Toggle antara default dan alternate view
+- ✅ **Texture Mapping** - Dengan mipmapping dan UV coordinates
+- ✅ **Clean Code** - Doxygen documentation, organized structure, alphabetical keybinds
