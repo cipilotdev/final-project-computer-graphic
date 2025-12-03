@@ -7,9 +7,10 @@
 | No  | Nama                            | NIM       |
 | --- | ------------------------------- | --------- |
 | 1   | Davidson Rafael Krisman Nugroho | 412024030 |
-| 2   | Yedija Teofilus Yonathan        | 412024    |
-| 3   | Michael Tandeas                 | 412024    |
-| 4   | Janisha Jaya                    | 412024    |
+| 2   | Yedija Teofilus Yonathan        | 412024011 |
+| 3   | Michael Tandeas                 | 412024021 |
+| 4   | Janisha Jaya                    | 412024033 |
+| 5   | Felix Wong                      | 412024004 |
 
 ---
 
