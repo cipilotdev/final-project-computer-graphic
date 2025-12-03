@@ -72,9 +72,10 @@
 
 #### Proper Error Checking (7 pts)
 
-- [ ] Shader compile error checking
-- [ ] File load error checking
-- [x] Division by zero prevention (pada `resize()` function)
+- [ ] Shader compile error checking (N/A - not using shaders)
+- [x] **File load error checking** - Texture loading dengan fallback mechanism
+- [x] **Division by zero prevention** - Pada `resize()` function
+- [x] **OpenGL error checking** - `checkGLError()` function untuk debugging
 
 ---
 
